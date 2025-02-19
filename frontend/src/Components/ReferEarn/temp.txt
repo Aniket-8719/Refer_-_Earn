@@ -1,0 +1,86 @@
+/* Project Structure */
+
+refer-earn-app/
+|-- backend/
+|   |-- src/
+|   |   |-- controllers/
+|   |   |   |-- referralController.js
+|   |   |-- models/
+|   |   |   |-- prisma.schema
+|   |   |-- routes/
+|   |   |   |-- referralRoutes.js
+|   |   |-- app.js
+|   |   |-- server.js
+|   |-- package.json
+|   |-- .env
+|
+|-- frontend/
+|   |-- src/
+|   |   |-- components/
+|   |   |   |-- ReferralModal.js
+|   |   |-- pages/
+|   |   |   |-- ReferEarn.js
+|   |   |-- App.js
+|   |   |-- index.js
+|   |-- package.json
+|   |-- tailwind.config.js
+|
+|-- README.md
+
+/* Backend Implementation */
+
+// backend/src/server.js
+const express = require('express');
+const cors = require('cors');
+require('dotenv').config();
+const referralRoutes = require('./routes/referralRoutes');
+
+const app = express();
+app.use(cors());
+app.use(express.json());
+app.use('/api/referrals', referralRoutes);
+
+const PORT = process.env.PORT || 5000;
+app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+
+/* Referral Controller */
+
+// backend/src/controllers/referralController.js
+const prisma = require('../models/prismaClient');
+const nodemailer = require('nodemailer');
+
+exports.submitReferral = async (req, res) => {
+    const { referrerName, referrerEmail, refereeName, refereeEmail, course } = req.body;
+    
+    if (!referrerName || !referrerEmail || !refereeName || !refereeEmail || !course) {
+        return res.status(400).json({ error: 'All fields are required' });
+    }
+    
+    try {
+        const newReferral = await prisma.referral.create({
+            data: { referrerName, referrerEmail, refereeName, refereeEmail, course }
+        });
+
+        // Send Email Notification
+        let transporter = nodemailer.createTransport({
+            service: 'gmail',
+            auth: {
+                user: process.env.GMAIL_USER,
+                pass: process.env.GMAIL_PASS
+            }
+        });
+
+        let mailOptions = {
+            from: process.env.GMAIL_USER,
+            to: refereeEmail,
+            subject: 'You have been referred to a course!',
+            text: `${referrerName} has referred you to the ${course} course!`
+        };
+
+        await transporter.sendMail(mailOptions);
+
+        res.status(201).json(newReferral);
+    } catch (error) {
+        res.status(500).json({ error: 'Error submitting referral' });
+    }
+};
