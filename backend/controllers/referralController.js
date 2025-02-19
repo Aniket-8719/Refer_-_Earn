@@ -15,7 +15,7 @@ exports.submitReferral = async (req, res) => {
     // Check if the referrer email already exists
     const checkSql = "SELECT * FROM referrals WHERE referrerEmail = ?";
     db.query(checkSql, [referrerEmail], (err, results) => {
-        if (err) {
+        if (err) { 
             console.error("❌ Database error:", err);
             return res.status(500).json({ message: "Database error" });
         }
@@ -34,7 +34,7 @@ exports.submitReferral = async (req, res) => {
             if (err) {
                 console.error("❌ Database error:", err);
                 return res.status(500).json({ message: "Database error" });
-            }
+            } 
 
             console.log("✅ Referral saved in database, sending email...");
             await sendReferralEmail(referrerName, referrerEmail, refereeName, refereeEmail, courseName);
