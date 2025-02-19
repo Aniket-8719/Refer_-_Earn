@@ -35,12 +35,12 @@ const createTableQuery = `
 
 db.query(createTableQuery, (err, result) => {
     if (err) {
-        console.error("❌ Error creating table:", err);
+        console.error("❌ Error creating table: ", err);
     } else {
-        console.log("✅ Referrals table is ready!");
+        console.log("✅ Referrals table is ready! ");
     }
 });
-
+  
 return db;
 };
 
